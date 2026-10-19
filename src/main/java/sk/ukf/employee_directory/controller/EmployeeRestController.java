@@ -49,6 +49,7 @@ public class EmployeeRestController {
         if (existingEmployee == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Employee with id " + id + " not found");
         }
+        employee.setId(id);
         return employeeService.save(employee);
     }
 

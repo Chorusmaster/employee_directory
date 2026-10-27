@@ -1,5 +1,10 @@
 package sk.ukf.employee_directory.controller;
 
+import jakarta.validation.Valid;
+import sk.ukf.employee_directory.response.ResponseFactory;
+import sk.ukf.employee_directory.response.ResponseWrapper;
+import org.springframework.http.ResponseEntity;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -15,46 +20,51 @@ import java.util.Map;
 @RequestMapping("/api/employees")
 public class EmployeeRestController {
     private final EmployeeService employeeService;
+    private final ResponseFactory response;
 
     @Autowired
-    public EmployeeRestController(EmployeeService employeeService) {
+    public EmployeeRestController(EmployeeService employeeService, ResponseFactory response) {
         this.employeeService = employeeService;
+        this.response = response;
     }
 
     @GetMapping
-    public List<Employee> getAllEmployees() {
-        return employeeService.findAll();
+    public ResponseEntity<ResponseWrapper<List<Employee>>> getAllEmployees() {
+        List<Employee> employees = employeeService.findAll();
+        return response.ok("Úspešne načítané", employees);
     }
 
     @GetMapping("/{id}")
-    public Employee getEmployee(@PathVariable Integer id) {
+    public ResponseEntity<ResponseWrapper<Employee>> getEmployee(@PathVariable Integer id) {
         Employee employee = employeeService.findById(id);
 
         if (employee == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Employee with id " + id + " not found");
         }
-        return employee;
+
+        return response.ok("Úspešne načítané", employee);
     }
 
     @PostMapping
-    public Employee createEmployee(@RequestBody Employee employee) {
+    public ResponseEntity<ResponseWrapper<Employee>> createEmployee(@Valid @RequestBody Employee employee) {
         employee.setId(null);
-        return employeeService.save(employee);
+        Employee savedEmployee = employeeService.save(employee);
+        return response.ok("Úspešne vytvorené", savedEmployee);
     }
 
     @PutMapping("/{id}")
-    public Employee updateEmployee(@PathVariable Integer id, @RequestBody Employee employee) {
+    public ResponseEntity<ResponseWrapper<Employee>> updateEmployee(@PathVariable Integer id, @Valid @RequestBody Employee employee) {
 
         Employee existingEmployee = employeeService.findById(id);
         if (existingEmployee == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Employee with id " + id + " not found");
         }
         employee.setId(id);
-        return employeeService.save(employee);
+        return response.ok("Úspešne aktualizované", employee);
     }
 
     @DeleteMapping("/{id}")
-    public Map<String, String> deleteEmployee(@PathVariable Integer id) {
+    public ResponseEntity<ResponseWrapper<Void>> deleteEmployee(@PathVariable Integer id) {
         Employee existingEmployee = employeeService.findById(id);
 
         if (existingEmployee == null) {
@@ -63,6 +73,6 @@ public class EmployeeRestController {
 
         employeeService.deleteById(id);
 
-        return Map.of("message", "Deleted employee with id " + id);
+        return response.ok("Zamestnanec úspešne zmazaný");
     }
 }

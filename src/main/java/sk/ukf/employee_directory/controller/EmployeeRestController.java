@@ -49,7 +49,7 @@ public class EmployeeRestController {
     public ResponseEntity<ResponseWrapper<Employee>> createEmployee(@Valid @RequestBody Employee employee) {
         employee.setId(null);
         Employee savedEmployee = employeeService.save(employee);
-        return response.ok("Úspešne vytvorené", savedEmployee);
+        return response.created("Úspešne vytvorené", savedEmployee);
     }
 
     @PutMapping("/{id}")
@@ -60,7 +60,8 @@ public class EmployeeRestController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Employee with id " + id + " not found");
         }
         employee.setId(id);
-        return response.ok("Úspešne aktualizované", employee);
+        Employee savedEmployee = employeeService.save(employee);
+        return response.ok("Úspešne aktualizované", savedEmployee);
     }
 
     @DeleteMapping("/{id}")
